@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property float|null $latitude
- * @property float|null $longitude
+ * @property float $latitude
+ * @property float $longitude
  */
 #[Table(name: 'coordinates')]
 class Coordinate extends Model
@@ -28,6 +28,11 @@ class Coordinate extends Model
 
     protected $fillable = ['charge_point_id', 'latitude', 'longitude'];
 
+    protected $attributes = [
+        'latitude' => 0.0,
+        'longitude' => 0.0,
+    ];
+
     protected function casts(): array
     {
         return [
@@ -36,12 +41,12 @@ class Coordinate extends Model
         ];
     }
 
-    public function getLatitude(): ?float
+    public function getLatitude(): float
     {
         return $this->latitude;
     }
 
-    public function getLongitude(): ?float
+    public function getLongitude(): float
     {
         return $this->longitude;
     }
@@ -61,16 +66,19 @@ class Coordinate extends Model
      */
     public function isValid(bool $fail = false): bool
     {
-        foreach ([
-            [CoordinateType::LATITUDE, $this->getLatitude()],
-            [CoordinateType::LONGITUDE, $this->getLongitude()],
-        ] as [$type, $value]) {
-            if ($value !== null && $value >= $type->min() && $value <= $type->max()) {
-                continue;
+        $latitude = $this->getLatitude();
+        if ($latitude < self::LATITUDE_MIN_BOUNDS || $latitude > self::LATITUDE_MAX_BOUNDS) {
+            if ($fail) {
+                throw InvalidCoordinate::forAxis(CoordinateType::LATITUDE);
             }
 
+            return false;
+        }
+
+        $longitude = $this->getLongitude();
+        if ($longitude < self::LONGITUDE_MIN_BOUNDS || $longitude > self::LONGITUDE_MAX_BOUNDS) {
             if ($fail) {
-                throw InvalidCoordinate::forAxis($type);
+                throw InvalidCoordinate::forAxis(CoordinateType::LONGITUDE);
             }
 
             return false;
