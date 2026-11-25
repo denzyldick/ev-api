@@ -1,0 +1,40 @@
+services:
+  app:
+    build:
+      context: .
+    entrypoint: php artisan octane:frankenphp --host=0.0.0.0 --port=8000 --workers=1 --max-requests=1
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    tty: true
+
+  mariadb:
+    image: mariadb:11.4
+    environment:
+      MARIADB_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-secret}"
+      MARIADB_DATABASE: "${DB_DATABASE:-laravel}"
+      MARIADB_USER: "${DB_USERNAME:-laravel}"
+      MARIADB_PASSWORD: "${DB_PASSWORD:-secret}"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  caddy_data:
+  caddy_config:
+  mariadb_data:
