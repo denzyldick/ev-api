@@ -1,0 +1,37 @@
+#:schema vendor/carthage-software/mago/schema.json
+version = "1.61"
+php-version = "8.5"
+
+[source]
+paths = ["app", "bootstrap", "public", "routes", "tests"]
+includes = ["vendor"]
+excludes = [
+    "bootstrap/cache/**",
+    "storage/**",
+    "public/frankenphp-worker.php",
+]
+
+[source.glob]
+literal-separator = true
+
+[formatter]
+preset = "laravel"
+excludes = ["bootstrap/", "public/", "tests/Feature/", "tests/TestCase.php"]
+parentheses-in-new-expression = false
+parentheses-around-new-in-member-access = true
+space-before-arrow-function-parameter-list-parenthesis = true
+empty-line-after-class-like-constant = true
+
+[linter]
+integrations = ["laravel", "phpunit"]
+
+[linter.rules]
+# Test classes naturally have one method per case.
+too-many-methods = { threshold = 12 }
+# PHPDoc @var annotations need a variable before the return statement.
+inline-variable-return = { exclude = ["app/ChargePoint.php"] }
+# isValid($fail) intentionally doubles as Coordinate's validator.
+no-boolean-flag-parameter = { exclude = ["app/ChargePoint/Coordinate.php"] }
+# Keep Laravel's generated boilerplate comments as shipped.
+no-empty-comment = { exclude = ["bootstrap/app.php", "tests/TestCase.php"] }
+strict-types = { exclude = ["bootstrap/", "public/", "tests/Feature/", "tests/TestCase.php"] }
