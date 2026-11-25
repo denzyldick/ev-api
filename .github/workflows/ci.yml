@@ -70,6 +70,9 @@ jobs:
       - name: Verify MariaDB connection
         run: php artisan db:show
 
+      - name: Run migrations
+        run: php artisan migrate --force
+
       - name: Mago (analyze, lint, format)
         run: composer quality
 
