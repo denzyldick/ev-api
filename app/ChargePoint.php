@@ -155,7 +155,7 @@ class ChargePoint extends Model
     }
 
     /**
-     * Attach a validated location to this charge point.
+     * Attach a validated coordinate to this charge point.
      *
      * The coordinate is stored as an in-memory relation; saving it to the
      * database is handled separately. Out-of-bounds coordinates are rejected
@@ -166,7 +166,7 @@ class ChargePoint extends Model
      *
      * @throws InvalidCoordinate When the coordinate is out of bounds.
      */
-    public function setLocation(Coordinate $coordinate): bool
+    public function setCoordinate(Coordinate $coordinate): bool
     {
         if (! $coordinate->isValid()) {
             throw InvalidCoordinate::forChargePoint($this->getId());

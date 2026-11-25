@@ -17,20 +17,20 @@ class ChargePointTest extends TestCase
         static::assertSame(ChargePointStatus::AVAILABLE, (new ChargePoint)->getStatus());
     }
 
-    public function test_set_location_stores_valid_coordinate(): void
+    public function test_set_coordinate_stores_valid_coordinate(): void
     {
         $chargePoint = new ChargePoint;
         $coordinate = $this->coordinate(52.37, 4.89);
 
-        static::assertTrue($chargePoint->setLocation($coordinate));
+        static::assertTrue($chargePoint->setCoordinate($coordinate));
         static::assertSame($coordinate, $chargePoint->getCoordinate());
     }
 
-    public function test_set_location_rejects_invalid_coordinate(): void
+    public function test_set_coordinate_rejects_invalid_coordinate(): void
     {
         $this->expectException(InvalidCoordinate::class);
 
-        (new ChargePoint)->setLocation($this->coordinate(100, 4.89));
+        (new ChargePoint)->setCoordinate($this->coordinate(100, 4.89));
     }
 
     public function test_status_accepts_all_supported_values(): void
