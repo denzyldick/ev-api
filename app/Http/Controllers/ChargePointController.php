@@ -11,4 +11,8 @@ final class ChargePointController extends Controller
     public function index() {}
 
     public function nearby() {}
+
+    public function show() {}
+
+    public function store() {}
 }
