@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 /**
  * An electric vehicle charge point.
@@ -131,6 +133,41 @@ class ChargePoint extends Model
     }
 
     /**
+     * Save this charge point together with its coordinate.
+     *
+     * Eloquent does not normally save relations from save(), so the coordinate
+     * relation is persisted here. The coordinate is validated before any write,
+     * and both writes run in a single transaction, so a failed coordinate write
+     * can never leave a charge point without a location.
+     *
+     * @param  array<array-key, mixed>  $options
+     * @return bool Whether the charge point and its coordinate were saved.
+     *
+     * @throws InvalidCoordinate When the attached coordinate is out of bounds.
+     * @throws RuntimeException When the coordinate could not be saved.
+     */
+    public function save(array $options = []): bool
+    {
+        $coordinate = $this->getCoordinate();
+        $coordinate->isValid(true);
+
+        /** @var bool $saved */
+        $saved = DB::transaction(function () use ($options, $coordinate): bool {
+            if (! parent::save($options)) {
+                return false;
+            }
+
+            if ($this->coordinate()->save($coordinate) === false) {
+                throw new RuntimeException('Failed to save the charge point coordinate.');
+            }
+
+            return true;
+        });
+
+        return $saved;
+    }
+
+    /**
      * Get the location of this charge point.
      *
      * Persisted models load the relation on first access. Unsaved models, and
@@ -157,8 +194,8 @@ class ChargePoint extends Model
     /**
      * Attach a validated coordinate to this charge point.
      *
-     * The coordinate is stored as an in-memory relation; saving it to the
-     * database is handled separately. Out-of-bounds coordinates are rejected
+     * The coordinate is attached as a relation and is written to the database
+     * when the charge point is saved. Out-of-bounds coordinates are rejected
      * before they can be attached.
      *
      * @param  Coordinate  $coordinate  Candidate latitude and longitude.
