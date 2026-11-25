@@ -28,11 +28,11 @@ class InvalidCoordinate extends Exception
         );
     }
 
-    public static function forChargePoint(?string $id): self
+    public static function forChargePoint(string $id): self
     {
         return new self(sprintf(
             'The coordinate given for charge point %s is not valid.',
-            $id ?? 'unsaved',
+            $id,
         ));
     }
 }

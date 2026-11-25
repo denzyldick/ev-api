@@ -13,8 +13,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
- * @property string|null $name
+ * @property string $id
+ * @property string $name
  * @property ChargePointStatus $status
+ * @property Coordinate $coordinate
  */
 #[Table(name: 'charge_points', key: 'id', keyType: 'string', incrementing: false)]
 class ChargePoint extends Model
@@ -31,18 +33,33 @@ class ChargePoint extends Model
     }
 
     protected $attributes = [
+        'name' => '',
         'status' => 'AVAILABLE',
     ];
 
-    public function getId(): ?string
+    /**
+     * Create a charge point and assign its unique ID immediately.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    public function __construct(array $attributes = [])
     {
-        /** @var string|null $key */
-        $key = $this->getKey();
+        parent::__construct($attributes);
 
-        return $key;
+        if ($this->getKey() === null) {
+            $this->setAttribute($this->getKeyName(), $this->newUniqueId());
+        }
     }
 
-    public function getName(): ?string
+    public function getId(): string
+    {
+        /** @var string $id */
+        $id = $this->getKey();
+
+        return $id;
+    }
+
+    public function getName(): string
     {
         return $this->name;
     }
@@ -67,16 +84,20 @@ class ChargePoint extends Model
         return $this->hasOne(Coordinate::class, 'charge_point_id');
     }
 
-    public function getCoordinate(): ?Coordinate
+    public function getCoordinate(): Coordinate
     {
+        if (! $this->relationLoaded('coordinate') && $this->exists) {
+            $this->load('coordinate');
+        }
+
         if (! $this->relationLoaded('coordinate')) {
-            return null;
+            $this->setRelation('coordinate', new Coordinate);
         }
 
         /** @var Coordinate|null $coordinate */
         $coordinate = $this->getRelation('coordinate');
 
-        return $coordinate;
+        return $coordinate ?? new Coordinate;
     }
 
     /**
